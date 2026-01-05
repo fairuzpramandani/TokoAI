@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Admin & AI Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        .btn-primary {
+            background-color: #4361ee;
+            border: none;
+        }
+        
+        /* Style Chatbot Baru (Lebih Lebar) */
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        .chat-user {
+            background-color: #4361ee;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-ai {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-shop-window me-2"></i>Toko Fairuz</a>
+            <span class="navbar-text text-white">Dashboard Admin</span>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header text-primary">
+                        <i class="bi bi-cart-plus me-2"></i>Input Pesanan Baru
+                    </div>
+                    <div class="card-body">
+                        <form action="/purchase" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Pilih Produk</label>
+                                <select name="product_id" class="form-select" required>
+                                    <option value="" selected disabled>-- Pilih Barang --</option>
+                                    <% products.forEach(p => { %>
+                                        <option value="<%= p.id %>" <%= p.qty <= 0 ? 'disabled' : '' %>>
+                                            <%= p.name %> - Rp<%= p.price.toLocaleString('id-ID') %> 
+                                            (Sisa: <%= p.qty %>)
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jumlah (Qty)</label>
+                                <input type="number" name="qty" class="form-control" min="1" placeholder="Masukkan jumlah..." required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="bi bi-check-circle me-1"></i> Proses Transaksi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history me-2"></i>Riwayat Transaksi Terkini</span>
+                        <span class="badge bg-secondary"><%= purchases.length %> Data</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover table-striped mb-0 align-middle">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="ps-3">ID</th>
+                                        <th>Gambar</th> <th>Nama Produk</th>
+                                        <th>Qty</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                        <% if(purchases.length === 0) { %>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-5 text-muted">
+                                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                                    Belum ada transaksi hari ini
+                                                </td>
+                                            </tr>
+                                        <% } %>
+
+                                        <% purchases.forEach(pur => { %>
+                                        <tr>
+                                            <td class="ps-3 text-muted">#<%= pur.id %></td>
+                                            <td>
+                                                <img src="https://tse2.mm.bing.net/th?q=<%= encodeURIComponent(pur.product_name) %>&w=100&h=100&c=7" 
+                                                    alt="<%= pur.product_name %>" 
+                                                    class="product-img"
+                                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                            </td>
+                                            <td class="fw-bold"><%= pur.product_name %></td>
+                                            <td><%= pur.qty %></td>
+                                            <td>
+                                                <% if(pur.status == 'success') { %>
+                                                    <span class="badge bg-success rounded-pill">Berhasil</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-danger rounded-pill">Dibatalkan</span>
+                                                <% } %>
+                                            </td>
+                                            <td>
+                                                <% if(pur.status == 'success') { %>
+                                                    <form action="/cancel/<%= pur.id %>" method="POST" onsubmit="return confirm('Batalkan transaksi ini?')">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle" title="Cancel Order">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </form>
+                                                <% } else { %>
+                                                    <span class="text-muted small">-</span>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-robot fs-4 me-2"></i>
+                            <div>
+                                <h6 class="mb-0">Fairuz AI Assistant</h6>
+                                <small class="text-white-50">Tanya stok, strategi penjualan, atau resep</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="chatbox" class="chat-box mb-3 border">
+                            <div class="text-center text-muted mt-5">
+                                <i class="bi bi-chat-dots fs-1 text-success opacity-50"></i>
+                                <p class="mt-2">Halo! Ada yang bisa saya bantu untuk toko Anda?</p>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group input-group-lg">
+                            <input type="text" id="userMsg" class="form-control" placeholder="Ketik pertanyaan Anda di sini..." onkeypress="handleEnter(event)">
+                            <button onclick="sendChat()" class="btn btn-success px-4">
+                                <i class="bi bi-send-fill me-2"></i> Kirim
+                            </button>
+                        </div>
+                        <div id="loading" class="text-center small text-muted mt-2 d-none">
+                            <span class="spinner-grow spinner-grow-sm text-success" role="status"></span> Sedang berpikir...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendChat();
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('userMsg');
+            const chatbox = document.getElementById('chatbox');
+            const loading = document.getElementById('loading');
+            const msg = input.value.trim();
+
+            if (!msg) return;
+
+            // Bersihkan pesan default
+            if (chatbox.innerText.includes('Halo! Ada yang bisa')) chatbox.innerHTML = '';
+
+            // User Chat
+            chatbox.innerHTML += `
+                <div class="d-flex">
+                    <div class="chat-message chat-user">
+                        ${msg}
+                    </div>
+                    <div class="ms-2 mt-2"><i class="bi bi-person-circle fs-4 text-primary"></i></div>
+                </div>
+            `;
+            
+            input.value = '';
+            chatbox.scrollTop = chatbox.scrollHeight;
+            loading.classList.remove('d-none');
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                const data = await res.json();
+
+                // AI Response
+                chatbox.innerHTML += `
+                    <div class="d-flex">
+                        <div class="me-2 mt-2"><i class="bi bi-robot fs-4 text-success"></i></div>
+                        <div class="chat-message chat-ai">
+                            ${formatAIResponse(data.reply)}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                chatbox.innerHTML += `<div class="text-center text-danger small my-2">Gagal terhubung ke AI.</div>`;
+            }
+
+            loading.classList.add('d-none');
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        // Fungsi kecil untuk merapikan teks AI (Bold & Newline)
+        function formatAIResponse(text) {
+            // Ubah **teks** menjadi <b>teks</b>
+            let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            // Ubah baris baru menjadi <br>
+            return formatted.replace(/\n/g, '<br>');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
